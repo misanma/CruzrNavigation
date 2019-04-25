@@ -2,6 +2,7 @@ package com.example.test;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatDialogFragment;
@@ -12,6 +13,7 @@ import android.widget.EditText;
 public class AddDialog extends AppCompatDialogFragment {
     private EditText editTextName;
     private EditText editTextDesc;
+    private AddDialogListener listener;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -31,6 +33,7 @@ public class AddDialog extends AppCompatDialogFragment {
                 //add click
                 String name = editTextName.getText().toString();
                 String desc = editTextDesc.getText().toString();
+                listener.applyTexts(name, desc);
             }
         });
 
@@ -40,4 +43,18 @@ public class AddDialog extends AppCompatDialogFragment {
         return builder.create();
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            listener = (AddDialogListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + "must impletement addDialogListener");
+        }
+
+    }
+
+    public interface AddDialogListener {
+        void applyTexts(String username, String password);
+    }
 }

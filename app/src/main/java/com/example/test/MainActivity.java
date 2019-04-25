@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.design.widget.FloatingActionButton;
@@ -13,8 +14,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.content.DialogInterface;
+import android.widget.Toast;
 
 import com.baoyz.swipemenulistview.SwipeMenu;
 import com.baoyz.swipemenulistview.SwipeMenuCreator;
@@ -30,7 +33,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AddDialog.AddDialogListener {
+
+    DatabaseHelper mDatabaseHelper;
+    ArrayAdapter adapter;
+    ArrayList<String> listData = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,14 +49,12 @@ public class MainActivity extends AppCompatActivity {
         final NavigationApi navigationApi = NavigationApi.get();
         navigationApi.initialize(this);
 
+        mDatabaseHelper = new DatabaseHelper(this);
 
         //init list
         SwipeMenuListView listView = findViewById(R.id.listView);
-        ArrayList<String> list = rander_list();
 
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, list);
-
-        listView.setAdapter(adapter);
+        populateList(listView);
 
         SwipeMenuCreator creator = new SwipeMenuCreator() {
 
@@ -92,21 +97,21 @@ public class MainActivity extends AppCompatActivity {
 
         listView.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
             @Override
-            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
-                AlertDialog.Builder adb = new AlertDialog.Builder(MainActivity.this);
+            public boolean onMenuItemClick(final int position, SwipeMenu menu, int index) {
+                final AlertDialog.Builder adb = new AlertDialog.Builder(MainActivity.this);
                 final int positionToRemove = position;
                 switch (index) {
                     case 0:
                         // open
-                        navigationApi.startNavigationService("");
-                        Log.d("button1","Deleted");
+                        Log.d("button1","Navigated");
                         adb.setTitle("Navigate");
                         adb.setMessage("Navigate to this object?");
                         adb.setNegativeButton("Cancel", null);
                         adb.setPositiveButton("Navigate", new DialogInterface.OnClickListener(){
                             public void onClick(DialogInterface dialog, int which){
-                                //-<remove()
 
+                                //TODO: navigation code
+                                toastMessage("Navigating.....");
                             }
                         });
                         adb.show();
@@ -121,7 +126,10 @@ public class MainActivity extends AppCompatActivity {
                         adb.setPositiveButton("Delete", new DialogInterface.OnClickListener(){
                             public void onClick(DialogInterface dialog, int which){
                                 //-<remove()
+                                mDatabaseHelper.deleteDataByName((String)adapter.getItem(position));
+                                adapter.remove(adapter.getItem(position));
                                 adapter.notifyDataSetChanged();
+                                toastMessage("Deleted");
                             }
                         });
                         adb.show();
@@ -138,25 +146,59 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 openAddDialog();
-
             }
         });
     }
+
+    public void populateList(SwipeMenuListView listView){
+
+        Cursor data = mDatabaseHelper.getData();
+
+        while(data.moveToNext()){
+            listData.add(data.getString(1));
+        }
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listData);
+        listView.setAdapter(adapter);
+    }
+
 
     public void openAddDialog(){
         AddDialog addDialog = new AddDialog();
         addDialog.show(getSupportFragmentManager(), "add dialog");
     }
 
-    public ArrayList<String> rander_list(){
-        Random rand = new Random();
-        ArrayList<String> list = new ArrayList<>();
-        for(int i =0; i < 20; i++){
-            list.add("object " + i +" at room " + rand.nextInt(9)+ rand.nextInt(9)+ rand.nextInt(9));
-        }
-        return list;
+
+    public void toastMessage(String messeage){
+        Toast.makeText(this, messeage, Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void applyTexts(String  name, String desc) {
+        AlertDialog.Builder adb = new AlertDialog.Builder(MainActivity.this);
+        Log.d("button1","Adding");
+        adb.setTitle("Add location");
+        adb.setMessage("Adding this " + name + "?");
+        adb.setNegativeButton("Cancel", null);
+        final String apname = name;
+        final String apdesc = desc;
+        adb.setPositiveButton("Add", new DialogInterface.OnClickListener(){
+            public void onClick(DialogInterface dialog, int which){
 
+                //placeholder coordinates
+                int x = 0;
+                int y = 0;
+                int z = 0;
+                boolean insertData = mDatabaseHelper.addData(apname, apdesc, x, y ,z);
+                if (!insertData) {
+                    adapter.add(apname);
+                    adapter.notifyDataSetChanged();
+                    toastMessage("New object added");
+                }else{
+                    toastMessage("Oops, something went wrong.");
+                }
+            }
+        });
+        adb.show();
 
+    }
 }
