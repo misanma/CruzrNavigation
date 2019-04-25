@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">CRUZR NAVIGATION</string>
+    <string name="hint_text_name">Name</string>
+    <string name="hint_text_desc">Description(optional)</string>
+</resources>
