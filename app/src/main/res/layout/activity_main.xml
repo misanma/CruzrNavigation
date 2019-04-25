@@ -26,7 +26,6 @@
                 android:hint="Search an object"/>
         </LinearLayout>
 
-
         <com.baoyz.swipemenulistview.SwipeMenuListView
             android:id="@+id/listView"
             android:layout_width="match_parent"

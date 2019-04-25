@@ -61,6 +61,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return data;
     }
 
+
     public boolean deleteDataByName(String name){
         SQLiteDatabase db = this.getWritableDatabase();
         //String query = "DELETE FROM " + TABLE_NAME + "WHERE Col1 is" + name;

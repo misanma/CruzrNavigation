@@ -10,10 +10,13 @@ import android.graphics.drawable.ColorDrawable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.content.DialogInterface;
@@ -56,11 +59,51 @@ public class MainActivity extends AppCompatActivity implements AddDialog.AddDial
 
         populateList(listView);
 
+        //init search filter
+        EditText theFilter = findViewById(R.id.search_filter);
+        theFilter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                (MainActivity.this).adapter.getFilter().filter(s);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+
         SwipeMenuCreator creator = new SwipeMenuCreator() {
 
             @Override
             public void create(SwipeMenu menu) {
-                // create "open" item
+
+                //create "info" item
+                SwipeMenuItem infoItem = new SwipeMenuItem(
+                        getApplicationContext());
+                // set item background
+                infoItem.setBackground(new ColorDrawable(Color.rgb(0xA0, 0xB5,
+                        0xD8)));
+                // set item width
+                infoItem.setWidth(170);
+                // set item title
+                infoItem.setIcon(R.drawable.info_icon);
+                //openItem.setTitle("Open");
+                // set item title fontsize
+                //openItem.setTitleSize(18);
+                // set item title font color
+                infoItem.setTitleColor(Color.WHITE);
+                // add to menu
+                menu.addMenuItem(infoItem);
+
+
+                // create "navi" item
                 SwipeMenuItem openItem = new SwipeMenuItem(
                         getApplicationContext());
                 // set item background
@@ -90,6 +133,8 @@ public class MainActivity extends AppCompatActivity implements AddDialog.AddDial
                 deleteItem.setIcon(R.drawable.delicon);
                 // add to menu
                 menu.addMenuItem(deleteItem);
+
+
             }
         };
         // set creator
@@ -99,9 +144,13 @@ public class MainActivity extends AppCompatActivity implements AddDialog.AddDial
             @Override
             public boolean onMenuItemClick(final int position, SwipeMenu menu, int index) {
                 final AlertDialog.Builder adb = new AlertDialog.Builder(MainActivity.this);
-                final int positionToRemove = position;
+
                 switch (index) {
                     case 0:
+                        break;
+
+
+                    case 1:
                         // open
                         Log.d("button1","Navigated");
                         adb.setTitle("Navigate");
@@ -117,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements AddDialog.AddDial
                         adb.show();
                         break;
 
-                    case 1:
+                    case 2:
                         // delete
                         Log.d("button1","Deleted");
                         adb.setTitle("Delete");
@@ -157,6 +206,10 @@ public class MainActivity extends AppCompatActivity implements AddDialog.AddDial
         while(data.moveToNext()){
             listData.add(data.getString(1));
         }
+
+
+
+
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listData);
         listView.setAdapter(adapter);
     }
